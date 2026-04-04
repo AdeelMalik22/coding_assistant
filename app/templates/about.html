@@ -1,0 +1,190 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="about-section">
+    <h1>About AI-Powered API Builder</h1>
+
+    <div class="about-content">
+        <h2>What is it?</h2>
+        <p>
+            The AI-Powered API Builder is a full-stack application that leverages local language models
+            (via Ollama) to automatically generate FastAPI code from natural language descriptions.
+        </p>
+
+        <h2>How does it work?</h2>
+        <ol>
+            <li><strong>You write a prompt</strong> - Describe the API you want to build</li>
+            <li><strong>AI understands your request</strong> - The system analyzes your prompt</li>
+            <li><strong>Code is generated</strong> - A complete FastAPI project is created</li>
+            <li><strong>You review the code</strong> - View, edit, and run the generated API</li>
+        </ol>
+
+        <h2>Key Features</h2>
+        <ul>
+            <li>✨ Automatic API code generation</li>
+            <li>🔐 JWT authentication support</li>
+            <li>📊 CRUD operations scaffolding</li>
+            <li>🗄️ Database integration with SQLAlchemy</li>
+            <li>✅ Code validation and security checks</li>
+            <li>📝 Interactive code editor</li>
+            <li>▶️ Run generated APIs directly</li>
+        </ul>
+
+        <h2>Tech Stack</h2>
+        <div class="tech-stack">
+            <div class="tech-item">
+                <h3>Backend</h3>
+                <p>FastAPI • Python 3.11+ • Uvicorn</p>
+            </div>
+            <div class="tech-item">
+                <h3>Frontend</h3>
+                <p>Jinja2 • HTML • CSS</p>
+            </div>
+            <div class="tech-item">
+                <h3>AI Engine</h3>
+                <p>Ollama • Qwen 2.5 Coder 7B</p>
+            </div>
+        </div>
+
+        <h2>Getting Started</h2>
+        <h3>Prerequisites</h3>
+        <ul>
+            <li>Python 3.11 or higher</li>
+            <li>Ollama installed and running</li>
+            <li>qwen2.5-coder:7b model (or compatible)</li>
+        </ul>
+
+        <h3>Installation</h3>
+        <pre><code>
+# Clone or download the project
+# Install dependencies
+pip install -r requirements.txt
+
+# Start Ollama (in another terminal)
+ollama serve
+
+# Pull the model (first time only)
+ollama pull qwen2.5-coder:7b
+
+# Run the application
+cd app
+uvicorn main:app --reload
+        </code></pre>
+
+        <h2>Example Usage</h2>
+        <p>Try generating an API with the following prompt:</p>
+        <blockquote>
+            "Create a blog API with posts and comments. Include JWT authentication,
+            CRUD operations for posts and comments, and user management."
+        </blockquote>
+
+        <h2>About the LLM</h2>
+        <p>
+            This application uses <strong>Ollama</strong> to run language models locally on your machine.
+            It supports models like Qwen 2.5 Coder which are optimized for code generation.
+        </p>
+        <p>
+            <a href="https://ollama.ai" target="_blank">Learn more about Ollama →</a>
+        </p>
+
+        <h2>Limitations</h2>
+        <ul>
+            <li>Generated code should be reviewed before production use</li>
+            <li>Complex requirements may need manual refinement</li>
+            <li>Performance depends on your hardware and LLM model size</li>
+            <li>Generated projects are stateless and not persisted by default</li>
+        </ul>
+
+        <h2>Future Features</h2>
+        <ul>
+            <li>React frontend code generation</li>
+            <li>Docker support</li>
+            <li>Deployment to cloud platforms</li>
+            <li>Database migration generation</li>
+            <li>Project versioning and history</li>
+            <li>Team collaboration features</li>
+        </ul>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.about-section {
+    max-width: 800px;
+    line-height: 1.8;
+}
+
+.about-content h2 {
+    margin-top: 30px;
+    color: #0066cc;
+    border-bottom: 2px solid #0066cc;
+    padding-bottom: 10px;
+}
+
+.about-content h3 {
+    margin-top: 20px;
+    color: #333;
+}
+
+.about-content ul, .about-content ol {
+    margin: 15px 0;
+    padding-left: 25px;
+}
+
+.about-content li {
+    margin: 10px 0;
+}
+
+.tech-stack {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 20px;
+    margin: 20px 0;
+}
+
+.tech-item {
+    background: #f9f9f9;
+    padding: 20px;
+    border-radius: 8px;
+    border-left: 4px solid #0066cc;
+}
+
+.tech-item h3 {
+    margin-top: 0;
+    margin-bottom: 10px;
+}
+
+.tech-item p {
+    margin: 0;
+    font-size: 14px;
+}
+
+.about-content pre {
+    background: #282c34;
+    color: #abb2bf;
+    padding: 15px;
+    border-radius: 4px;
+    overflow-x: auto;
+    font-size: 13px;
+}
+
+.about-content blockquote {
+    border-left: 4px solid #0066cc;
+    padding: 15px 20px;
+    background: #f9f9f9;
+    margin: 20px 0;
+    font-style: italic;
+}
+
+.about-content a {
+    color: #0066cc;
+    text-decoration: none;
+}
+
+.about-content a:hover {
+    text-decoration: underline;
+}
+</style>
+{% endblock %}
+

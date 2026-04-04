@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="api-reference">
+    <h1>API Reference</h1>
+
+    <div class="api-endpoint">
+        <h2>POST /api/generate</h2>
+        <p>Generate FastAPI code from a prompt</p>
+
+        <h3>Request</h3>
+        <pre><code class="language-json">{
+  "prompt": "Create a user system with JWT authentication",
+  "jwt_auth": true,
+  "crud_operations": true,
+  "user_model": true,
+  "database": true,
+  "custom_rules": []
+}</code></pre>
+
+        <h3>Response</h3>
+        <pre><code class="language-json">{
+  "project_id": "project_abc123def456",
+  "success": true,
+  "message": "API generated successfully",
+  "files": {
+    "models.py": "...",
+    "schemas.py": "...",
+    "routes.py": "..."
+  },
+  "validation_summary": { ... }
+}</code></pre>
+    </div>
+
+    <div class="api-endpoint">
+        <h2>GET /api/projects/{project_id}</h2>
+        <p>Get information about a generated project</p>
+
+        <h3>Response</h3>
+        <pre><code class="language-json">{
+  "project_id": "project_abc123def456",
+  "project_dir": "/path/to/project",
+  "files": { ... },
+  "metadata": { ... },
+  "file_count": 5
+}</code></pre>
+    </div>
+
+    <div class="api-endpoint">
+        <h2>GET /api/projects/{project_id}/files/{filename}</h2>
+        <p>Get a specific file from a project</p>
+
+        <h3>Response</h3>
+        <pre><code class="language-json">{
+  "project_id": "project_abc123def456",
+  "filename": "models.py",
+  "content": "..."
+}</code></pre>
+    </div>
+
+    <div class="api-endpoint">
+        <h2>PUT /api/projects/{project_id}/files/{filename}</h2>
+        <p>Edit a file in a project</p>
+
+        <h3>Request</h3>
+        <pre><code class="language-json">{
+  "content": "..."
+}</code></pre>
+
+        <h3>Response</h3>
+        <pre><code class="language-json">{
+  "success": true,
+  "message": "Successfully updated models.py",
+  "filename": "models.py"
+}</code></pre>
+    </div>
+</section>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+.api-reference {
+    max-width: 900px;
+}
+
+.api-endpoint {
+    background: #f9f9f9;
+    border-left: 4px solid #0066cc;
+    padding: 20px;
+    margin-bottom: 30px;
+    border-radius: 4px;
+}
+
+.api-endpoint h2 {
+    margin-top: 0;
+    color: #0066cc;
+    font-family: monospace;
+}
+
+.api-endpoint h3 {
+    margin-top: 20px;
+    color: #333;
+}
+
+.api-endpoint pre {
+    background: #282c34;
+    color: #abb2bf;
+    padding: 15px;
+    border-radius: 4px;
+    overflow-x: auto;
+}
+
+.api-endpoint code {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+}
+</style>
+{% endblock %}
+
