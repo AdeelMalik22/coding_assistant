@@ -4,12 +4,12 @@ from fastapi import APIRouter, HTTPException, BackgroundTasks
 from pydantic import BaseModel
 from typing import Optional
 import json
-from utils.logger import get_logger
-from utils.logger import get_logger
 import asyncio
 
 from utils.logger import get_logger
-from app.ai.prompt_builder import GenerationRules
+from app.ai.prompt_builder import GenerationRules, PromptBuilder
+from app.ai.llm import OllamaClient
+from app.ai.parser import CodeParser
 from services.generator_service import GeneratorService
 
 logger = get_logger(__name__)
@@ -67,7 +67,7 @@ class FileEditResponse(BaseModel):
 @router.post("/generate", response_model=GenerateResponse)
 async def generate_api(request: GenerateRequest):
     """
-    Generate code from a prompt.
+    Generate code from a prompt - simplified direct approach.
 
     Args:
         request: Generation request with prompt
@@ -75,62 +75,42 @@ async def generate_api(request: GenerateRequest):
     Returns:
         GenerateResponse with generated code
     """
-    logger.info(f"Received generation request: {request.prompt[:100]}...")
+    logger.info(f"Received generation request: {request.prompt}")
 
     try:
-        # Build generation rules
-        rules = GenerationRules(
-            jwt_auth=request.jwt_auth,
-            crud_operations=request.crud_operations,
-            user_model=request.user_model,
-            database=request.database,
-            custom_rules=request.custom_rules or [],
-        )
+        # Step 1: Create LLM client
+        client = OllamaClient()
 
-        # Generate code with timeout
+        # Step 2: Build prompt
+        engineered_prompt = PromptBuilder.build_prompt(request.prompt, GenerationRules())
+        logger.info("Sending to LLM...")
+
+        # Step 3: Generate text directly from LLM
+        llm_response = await client.generate(engineered_prompt)
+        logger.info(f"Got response: {llm_response[:100]}...")
+
+        if not llm_response or not llm_response.strip():
+            return GenerateResponse(
+                project_id="error",
+                success=False,
+                message="Empty response",
+                error_message="LLM returned empty response",
+            )
+
+        # Step 4: Return response directly as a simple file
+        # Parse to determine if it's code or text
         try:
-            result = await asyncio.wait_for(
-                generator.generate_api(request.prompt, rules),
-                timeout=120.0  # 2 minute timeout
-            )
-        except asyncio.TimeoutError:
-            logger.error("Generation timed out after 120 seconds")
-            return GenerateResponse(
-                project_id="timeout",
-                success=False,
-                message="Generation timed out",
-                error_message="Generation took too long. Check if Ollama is running: ollama serve",
-            )
-
-        if not result.success:
-            logger.error(f"Generation failed: {result.error_message}")
-            return GenerateResponse(
-                project_id=result.project_id,
-                success=False,
-                message="Code generation failed",
-                error_message=result.error_message,
-            )
-
-        # Prepare file response
-        files = {}
-        if result.code_blocks:
-            for filename, block in result.code_blocks.items():
-                files[filename] = block.content
-        else:
-            logger.error("No code blocks generated")
-            return GenerateResponse(
-                project_id=result.project_id,
-                success=False,
-                message="No code generated",
-                error_message="No output from LLM",
-            )
+            code_blocks = CodeParser.parse_response(llm_response)
+            files = {filename: block.content for filename, block in code_blocks.items()}
+        except Exception as e:
+            logger.error(f"Parser error: {str(e)}, returning raw response")
+            files = {"response.txt": llm_response}
 
         return GenerateResponse(
-            project_id=result.project_id,
+            project_id="generated",
             success=True,
-            message="Code generated successfully",
+            message="Generated successfully",
             files=files,
-            validation_summary=result.metadata.get("validation_summary"),
         )
 
     except Exception as e:
@@ -139,7 +119,7 @@ async def generate_api(request: GenerateRequest):
             project_id="error",
             success=False,
             message="Generation failed",
-            error_message=str(e),
+            error_message=f"Error: {str(e)}",
         )
 
 
