@@ -72,8 +72,8 @@ class OllamaClient:
             response_text = ""
             async with httpx.AsyncClient(timeout=self.timeout) as client:
                 logger.info(f"Sending request to Ollama at {self.base_url}...")
-                async with client.stream(
-                    "POST",
+                # Use regular request (not streaming) since stream=False
+                response = await client.post(
                     f"{self.base_url}/api/generate",
                     json={
                         "model": model,
@@ -81,19 +81,15 @@ class OllamaClient:
                         "stream": False,
                         "temperature": 0.2,
                     },
-                ) as response:
-                    logger.info(f"Got response status: {response.status_code}")
-                    if response.status_code != 200:
-                        error_text = ""
-                        async for chunk in response.aiter_text():
-                            error_text += chunk
-                        logger.error(f"Ollama error: {error_text}")
-                        raise OllamaException(
-                            f"Ollama API error: {response.status_code}"
-                        )
+                )
+                logger.info(f"Got response status: {response.status_code}")
+                if response.status_code != 200:
+                    logger.error(f"Ollama error: {response.text}")
+                    raise OllamaException(
+                        f"Ollama API error: {response.status_code}"
+                    )
 
-                    async for line in response.aiter_text():
-                        response_text += line
+                response_text = response.text
 
             logger.info(f"Got response: {response_text[:100]}...")
 
@@ -119,10 +115,14 @@ class OllamaClient:
                 f"Failed to connect to Ollama at {self.base_url}. "
                 f"Make sure Ollama is running: ollama serve"
             )
-        except asyncio.TimeoutError:
+        except asyncio.TimeoutError as e:
+            logger.error(f"Ollama timeout error: {str(e)}")
+            raise OllamaException(f"Ollama request timed out after {self.timeout}s")
+        except httpx.TimeoutException as e:
+            logger.error(f"HTTP timeout error: {str(e)}")
             raise OllamaException(f"Ollama request timed out after {self.timeout}s")
         except Exception as e:
-            logger.error(f"Ollama generation error: {str(e)}")
+            logger.error(f"Ollama generation error: {str(e)}", exc_info=True)
             raise OllamaException(f"Failed to generate code: {str(e)}")
 
     async def generate_stream(self, prompt: str, model: Optional[str] = None) -> AsyncGenerator[str, None]:

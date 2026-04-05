@@ -55,18 +55,77 @@ Important:
     @staticmethod
     def build_prompt(user_prompt: str, rules: GenerationRules = None) -> str:
         """
-        Build a prompt for LLM.
-        Now handles ANY type of request - code, questions, explanations.
+        Build a prompt for LLM with generation rules applied.
 
         Args:
             user_prompt: User's request (can be anything)
-            rules: Generation rules (optional, mostly ignored for flexibility)
+            rules: Generation rules to apply (optional)
 
         Returns:
-            The user prompt (LLM is smart enough to understand context)
+            Enhanced prompt with rules included
         """
         logger.info(f"Processing prompt: {user_prompt[:50]}...")
+
+        if rules is None:
+            rules = GenerationRules()
+
+        # Build requirements list
+        requirements = []
+        if rules.jwt_auth:
+            requirements.append("- Include JWT authentication/authorization")
+        if rules.crud_operations:
+            requirements.append("- Include full CRUD operations")
+        if rules.user_model:
+            requirements.append("- Include user model and management")
+        if rules.database:
+            requirements.append("- Include database integration")
+        if rules.custom_rules:
+            requirements.extend([f"- {rule}" for rule in rules.custom_rules])
+
+        # Build final prompt
+        if requirements:
+            requirements_text = "\n".join(requirements)
+            enhanced_prompt = f"""{user_prompt}
+
+Required features/rules:
+{requirements_text}"""
+            return enhanced_prompt
+
         return user_prompt
+
+    @staticmethod
+    def extract_requirements(prompt: str) -> GenerationRules:
+        """
+        Extract generation requirements from a prompt.
+
+        Args:
+            prompt: User prompt to analyze
+
+        Returns:
+            GenerationRules with extracted requirements
+        """
+        prompt_lower = prompt.lower()
+
+        rules = GenerationRules(
+            jwt_auth=(
+                "jwt" in prompt_lower or
+                "authentication" in prompt_lower or
+                "auth" in prompt_lower
+            ),
+            crud_operations=(
+                "crud" in prompt_lower or
+                "create" in prompt_lower and "read" in prompt_lower or
+                "update" in prompt_lower and "delete" in prompt_lower
+            ),
+            user_model=(
+                "user" in prompt_lower and
+                ("model" in prompt_lower or "management" in prompt_lower or "system" in prompt_lower)
+            ),
+            database=True,  # Default to database unless explicitly disabled
+        )
+
+        logger.info(f"Extracted requirements: jwt_auth={rules.jwt_auth}, crud={rules.crud_operations}, user_model={rules.user_model}")
+        return rules
 
     @staticmethod
     def build_system_message() -> str:

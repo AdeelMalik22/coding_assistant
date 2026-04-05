@@ -240,8 +240,8 @@ class CodeParser:
                 logger.warning(f"Code block {filename} is empty")
                 return False
 
-            # Check filename is valid
-            if not re.match(r"^[\w.-]+\.py$", filename):
+            # Check filename is valid (allow .py, .txt, .json, and other safe extensions)
+            if not re.match(r"^[\w.-]+\.\w+$", filename):
                 logger.warning(f"Invalid filename: {filename}")
                 return False
 
